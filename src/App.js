@@ -1,15 +1,26 @@
 import './App.css';
 import Keyboard from './components/Keyboard';
 import Board from './components/Board';
-import {createContext, useState} from 'react';
-import { boardDefault } from "./Words";
+import {createContext, useEffect, useState} from 'react';
+import { boardDefault, generateWordSet} from "./Words";
 
 
 export const AppContext = createContext();
 
 function App() {
   const [board, setBoard] = useState(boardDefault);
-  const [currAttempt, setCurrentAttempt] = useState({attempt: 0, letterPos: 0})
+  const [currAttempt, setCurrAttempt] = useState({attempt: 0, letterPos: 0})
+  const [wordSet, setWordSet] = useState(new Set())
+  const [disabledLetters, setDisabledLetters] = useState([]);
+
+  const correctWord = "RIGHT"
+
+  useEffect(() => {
+    generateWordSet().then((words) => {
+      setWordSet(words.wordSet);
+      console.log(words);
+    })
+  }, [])
 
   const onSelectLetter = (keyVal) => {
     if (currAttempt.letterPos = 4) return;
@@ -28,7 +39,22 @@ function App() {
 
   const onEnter = () => {
     if (currAttempt.letterPos !== 5) return;
-    setCurrAttempt({attempt: currAttempt.attempt + 1, letterPos: 0})
+
+    let currWord = "";
+    for (let i = 0; i < 5; i++){
+      currWord += board[currAttempt.attempt][i];
+    }
+
+    if (wordSet.has(currWord.toLowerCase())) {
+      setCurrAttempt({attempt: currAttempt.attempt + 1, letterPos: 0})
+    } else {
+      alert("Word Not Found");
+    }
+
+    if (currWord === correctWord){
+      alert("Game Ended");
+    }
+
   }
 
 
@@ -37,7 +63,19 @@ function App() {
       <nav>
         <h1>Wordle</h1>
       </nav>
-      <AppContext.Provider value={{ board, setBoard, currAttempt, setCurrentAttempt, onSelectLetter, onDelete, onEnter}}>
+      <AppContext.Provider 
+      value={{ 
+        board, 
+        setBoard, 
+        currAttempt, 
+        setCurrAttempt, 
+        onSelectLetter, 
+        onDelete, 
+        onEnter, 
+        correctWord,
+        setDisabledLetters,
+        disabledLetters
+        }}>
         <div className= "game">
         <Board />
         <Keyboard />
